@@ -2,6 +2,15 @@
 
 The following step are the ones that enable Time Machine backups with Raspberry Pi plus a bit of polishing to my taste.
 
+## 0. Setup raspberry
+
+Start raspi-config and change the hostname to something more meaningful.
+
+```
+sudo raspi-config
+```
+Navigate to `Network > Hostname`
+
 ## 1. Format the hard drive
 I had a hard-drive serving as Time Machine disk. However, I couldn't mount the disk due to Apple Core Storage:
 
@@ -41,13 +50,13 @@ diskutil list
 Then find your drive and partition identifier (like: disk\*s\*), and run:
 
 ```
- diskutil disableJournal /dev/disk*s*
+diskutil disableJournal /Volumes/Time\ Machine
 ```
 
 Dont forget to replace the asterisks. You'll see:
 
 ```
-Journaling has been disabled for volume MyTimeMachine on disk*s*
+Journaling has been disabled for volume Time Machine on disk*s*
 ```
 
 ## 3. Install tools for Apple-formatted drives
@@ -90,6 +99,23 @@ Device         Start        End   Sectors   Size Type
 
 In my case my HD is connected to USB and the device is `/dev/sda2`. A good hint is the fs type `Apple HFS/HFS+` or on other tools `hfsx`. 
 
+Optional: Get the UUID to be indipendent of which port you are using for it
+
+```
+$ ls -l /dev/disk/by-uuid/
+
+...
+
+lrwxrwxrwx 1 root root 10 Mär  3 15:59 5C4E-11DE -> ../../sdb2
+lrwxrwxrwx 1 root root 15 Mär  3 15:59 6228-7918 -> ../../mmcblk0p1
+lrwxrwxrwx 1 root root 10 Mär  3 15:59 67E3-17ED -> ../../sda1
+lrwxrwxrwx 1 root root 15 Mär  3 15:59 6bfc8851-cf63-4362-abf1-045dda421aad -> ../../mmcblk0p2
+lrwxrwxrwx 1 root root 10 Mär  3 15:59 7c694659-3807-3d6c-8a81-74a80de51297 -> ../../sda2
+```
+
+Something like the `5C4E-11DE` is what we are searching for for our specific drive.
+
+
 #### Create your mounting point:
 
 ```
@@ -119,6 +145,13 @@ Add to the end of the file:
 ```
 /dev/sda2 /media/time_machine hfsplus force,rw,user,noauto,x-systemd.automount 0 0
 ```
+
+Alternatively, via UUID:
+
+```
+UUID=*your_uuid* /media/time_machine hfsplus force,rw,user,noauto,x-systemd.automount 0 0
+```
+
 
 Mount the drive
 
